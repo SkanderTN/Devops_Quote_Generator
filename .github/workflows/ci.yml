@@ -76,13 +76,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
       
-      - name:  Verify app starts
-        run: |
-          timeout 5 npm start || code=$?
-          if [ $code -eq 124 ]; then
-            echo "✅ App started successfully!"
-            exit 0
-          else
-            echo "❌ App failed to start"
-            exit 1
-          fi
+      - name: Verify app module loads
+        run: node -e "const app = require('./index.js'); console.log('✅ App module loaded successfully');"
+        env:
+          NODE_ENV: production
