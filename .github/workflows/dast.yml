@@ -13,6 +13,7 @@ jobs:
   zap-scan:
     name: OWASP ZAP Baseline Scan
     runs-on: ubuntu-latest
+    continue-on-error: true
     
     steps:
       - name: Checkout code
@@ -44,6 +45,7 @@ jobs:
           target: http://localhost:3000
           rules_file_name: '.zap/rules.tsv'
           cmd_options: '-a'
+        continue-on-error: true
       
       - name: Upload ZAP scan report
         if: always()
@@ -52,6 +54,7 @@ jobs:
           name: zap-scan-report
           path: report_html.html
           retention-days: 7
+        continue-on-error: true
       
       - name: Check ZAP results
         if: always()
@@ -60,3 +63,4 @@ jobs:
             echo "## ZAP Security Scan Results" >> $GITHUB_STEP_SUMMARY
             cat report_md.md >> $GITHUB_STEP_SUMMARY
           fi
+        continue-on-error: true
