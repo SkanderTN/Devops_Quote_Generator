@@ -5,18 +5,18 @@ const app = express();
 // QUOTE DATA (in-memory storage)
 // ============================================
 const quotes = [
-  { id:  1, text: "The only limit to our realization of tomorrow is our doubts of today.", author: "Franklin D. Roosevelt" },
-  { id: 2, text: "Life is 10% what happens to us and 90% how we react to it.", author: "Charles R.  Swindoll" },
-  { id: 3, text:  "The purpose of our lives is to be happy.", author: "Dalai Lama" },
-  { id: 4, text:  "Get busy living or get busy dying.", author: "Stephen King" },
-  { id:  5, text: "You only live once, but if you do it right, once is enough.", author: "Mae West" },
-  { id: 6, text: "In the middle of every difficulty lies opportunity.", author: "Albert Einstein" },
-  { id:  7, text: "The best time to plant a tree was 20 years ago. The second best time is now.", author: "Chinese Proverb" },
-  { id: 8, text: "It is during our darkest moments that we must focus to see the light.", author: "Aristotle" },
-  { id: 9, text:  "Do what you can, with what you have, where you are.", author: "Theodore Roosevelt" },
-  { id:  10, text: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" },
-  { id: 11, text: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
-  { id: 12, text: "The only impossible journey is the one you never begin.", author: "Tony Robbins" }
+  { id:  1, text: 'The only limit to our realization of tomorrow is our doubts of today.', author: 'Franklin D. Roosevelt' },
+  { id: 2, text: 'Life is 10% what happens to us and 90% how we react to it.', author: 'Charles R.  Swindoll' },
+  { id: 3, text:  'The purpose of our lives is to be happy.', author: 'Dalai Lama' },
+  { id: 4, text:  'Get busy living or get busy dying.', author: 'Stephen King' },
+  { id:  5, text: 'You only live once, but if you do it right, once is enough.', author: 'Mae West' },
+  { id: 6, text: 'In the middle of every difficulty lies opportunity.', author: 'Albert Einstein' },
+  { id:  7, text: 'The best time to plant a tree was 20 years ago. The second best time is now.', author: 'Chinese Proverb' },
+  { id: 8, text: 'It is during our darkest moments that we must focus to see the light.', author: 'Aristotle' },
+  { id: 9, text:  'Do what you can, with what you have, where you are.', author: 'Theodore Roosevelt' },
+  { id:  10, text: 'Success is not final, failure is not fatal: it is the courage to continue that counts.', author: 'Winston Churchill' },
+  { id: 11, text: 'Believe you can and you\'re halfway there.', author: 'Theodore Roosevelt' },
+  { id: 12, text: 'The only impossible journey is the one you never begin.', author: 'Tony Robbins' }
 ];
 
 // ============================================
