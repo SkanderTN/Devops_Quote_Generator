@@ -1,0 +1,27 @@
+{
+  "name": "devops_quote_generator",
+  "version": "1.0.0",
+  "description": "A simple Node.js REST API that returns random inspirational quotes",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "test": "echo \"Tests will be added\" && exit 0",
+    "lint": "echo \"Linting will be configured\" && exit 0"
+  },
+  "keywords": [
+    "quote",
+    "api",
+    "devops",
+    "nodejs",
+    "express"
+  ],
+  "author": "SkanderTN",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}
