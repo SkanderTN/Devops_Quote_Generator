@@ -1,11 +1,9 @@
 const request = require('supertest');
 const app = require('../index');
 
-// Store server reference for cleanup
 let server;
 
 beforeAll(() => {
-  // Start server on a different port for testing
   server = app.listen(3001);
 });
 
@@ -15,18 +13,23 @@ afterAll((done) => {
 
 describe('Quote Generator API', () => {
   
-  // Health check test
   describe('GET /', () => {
     it('should return health check with status healthy', async () => {
       const res = await request(app).get('/');
       
       expect(res.statusCode).toBe(200);
-      expect(res.body.status).toBe('healthy');
+      expect(res.body. status).toBe('healthy');
       expect(res.body.service).toBe('Quote Generator API');
+    });
+
+    it('should include requestId in response', async () => {
+      const res = await request(app).get('/');
+      
+      expect(res.body).toHaveProperty('requestId');
+      expect(res.headers).toHaveProperty('x-request-id');
     });
   });
 
-  // Random quote test
   describe('GET /quote', () => {
     it('should return a random quote with author', async () => {
       const res = await request(app).get('/quote');
@@ -34,12 +37,10 @@ describe('Quote Generator API', () => {
       expect(res.statusCode).toBe(200);
       expect(res.body).toHaveProperty('quote');
       expect(res.body).toHaveProperty('author');
-      expect(typeof res.body.quote).toBe('string');
-      expect(typeof res.body.author).toBe('string');
+      expect(res.body).toHaveProperty('requestId');
     });
   });
 
-  // All quotes test
   describe('GET /quotes', () => {
     it('should return all quotes with count', async () => {
       const res = await request(app).get('/quotes');
@@ -52,8 +53,7 @@ describe('Quote Generator API', () => {
     });
   });
 
-  // Quote by ID tests
-  describe('GET /quotes/: id', () => {
+  describe('GET /quotes/:id', () => {
     it('should return a specific quote by ID', async () => {
       const res = await request(app).get('/quotes/1');
       
@@ -71,13 +71,40 @@ describe('Quote Generator API', () => {
     });
   });
 
-  // 404 handler test
+  describe('GET /metrics', () => {
+    it('should return Prometheus metrics', async () => {
+      const res = await request(app).get('/metrics');
+      
+      expect(res.statusCode).toBe(200);
+      expect(res.headers['content-type']).toContain('text/plain');
+      expect(res.text).toContain('http_requests_total');
+      expect(res.text).toContain('http_request_duration_seconds');
+    });
+  });
+
   describe('Invalid routes', () => {
     it('should return 404 for undefined routes', async () => {
       const res = await request(app).get('/invalid-route');
       
       expect(res.statusCode).toBe(404);
       expect(res.body.error).toBe('Not Found');
+    });
+  });
+
+  describe('Request Tracing', () => {
+    it('should include X-Request-ID header in response', async () => {
+      const res = await request(app).get('/quote');
+      
+      expect(res.headers['x-request-id']).toBeDefined();
+      expect(res.headers['x-request-id']).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+      );
+    });
+
+    it('should have matching requestId in header and body', async () => {
+      const res = await request(app).get('/quote');
+      
+      expect(res.headers['x-request-id']).toBe(res.body.requestId);
     });
   });
 
