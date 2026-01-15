@@ -18,7 +18,7 @@ describe('Quote Generator API', () => {
       const res = await request(app).get('/');
       
       expect(res.statusCode).toBe(200);
-      expect(res.body. status).toBe('healthy');
+      expect(res.body.status).toBe('healthy');
       expect(res.body.service).toBe('Quote Generator API');
     });
 
@@ -57,7 +57,7 @@ describe('Quote Generator API', () => {
     it('should return a specific quote by ID', async () => {
       const res = await request(app).get('/quotes/1');
       
-      expect(res.statusCode).toBe(200);
+      expect(res. statusCode).toBe(200);
       expect(res.body. id).toBe(1);
       expect(res.body).toHaveProperty('text');
       expect(res.body).toHaveProperty('author');
@@ -105,6 +105,32 @@ describe('Quote Generator API', () => {
       const res = await request(app).get('/quote');
       
       expect(res.headers['x-request-id']).toBe(res.body.requestId);
+    });
+  });
+
+  describe('Security Headers', () => {
+    it('should include X-Content-Type-Options header', async () => {
+      const res = await request(app).get('/');
+      
+      expect(res. headers['x-content-type-options']).toBe('nosniff');
+    });
+
+    it('should include X-Frame-Options header', async () => {
+      const res = await request(app).get('/');
+      
+      expect(res.headers['x-frame-options']).toBe('SAMEORIGIN');
+    });
+
+    it('should include X-XSS-Protection header', async () => {
+      const res = await request(app).get('/');
+      
+      expect(res.headers).toHaveProperty('x-xss-protection');
+    });
+
+    it('should not expose X-Powered-By header', async () => {
+      const res = await request(app).get('/');
+      
+      expect(res. headers['x-powered-by']).toBeUndefined();
     });
   });
 
