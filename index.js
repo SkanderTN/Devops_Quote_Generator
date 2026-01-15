@@ -153,10 +153,12 @@ app.use((req, res) => {
 // ============================================
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-  console.log(JSON.stringify({ level: 'info', type: 'server_start', port: PORT, timestamp: new Date().toISOString() }));
-  console.log(`🎉 Quote API:  http://localhost:${PORT}`);
-  console.log(`📊 Metrics:    http://localhost:${PORT}/metrics`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(JSON.stringify({ level: 'info', type: 'server_start', port: PORT, timestamp: new Date().toISOString() }));
+    console.log(`🎉 Quote API:  http://localhost:${PORT}`);
+    console.log(`📊 Metrics:    http://localhost:${PORT}/metrics`);
+  });
+}
 
 module.exports = app;

@@ -76,13 +76,15 @@ jobs:
       - name: Install dependencies
         run: npm ci
       
-      - name:  Verify app starts
+      - name: Verify app can be imported and starts
         run: |
-          timeout 5 npm start || code=$?
-          if [ $code -eq 124 ]; then
-            echo "✅ App started successfully!"
+          node -e "const app = require('./index.js'); console.log('✅ App module loaded successfully!');"
+          timeout 3 npm start &
+          sleep 1
+          if curl -f http://localhost:3000/ > /dev/null 2>&1; then
+            echo "✅ App is running and responding to requests!"
             exit 0
           else
-            echo "❌ App failed to start"
+            echo "❌ App failed to start or is not responding"
             exit 1
           fi
