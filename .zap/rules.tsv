@@ -1,0 +1,6 @@
+id	action	description
+10021	IGNORE	X-Content-Type-Options Header Missing
+10036	IGNORE	Server Leaks Version Information
+10038	IGNORE	Content Security Policy Header Not Set
+10098	IGNORE	Cross-Domain Misconfiguration
+10055	IGNORE	CSP:  Wildcard Directive
