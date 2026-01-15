@@ -56,7 +56,7 @@ spec:
     spec:
       containers:
       - name: quote-api
-        image: YOUR_DOCKERHUB_USERNAME/quote-api:latest
+        image: quote-api:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 3000
