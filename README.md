@@ -1,212 +1,194 @@
-# Devops_Quote_Generator
+# DevOps Quote Generator
 
-A production-ready Node.js REST API with complete DevOps infrastructure, including Docker containerization, Kubernetes deployment, comprehensive testing, and security scanning.
+A production-ready Node.js REST API with full DevOps tooling: Docker, Kubernetes (Minikube), CI/CD, observability (metrics/logging/tracing), and security scanning.
+
+## Overview
+- **App**: Express API with health, quotes, metrics
+- **Observability**: Prometheus metrics, structured logs, request tracing
+- **Security**: Helmet headers, CodeQL (SAST), OWASP ZAP baseline (DAST)
+- **Container & Orchestration**: Docker image, Kubernetes, probes, NetworkPolicy
+- **CI/CD**: GitHub Actions for lint, test, audit, docker build, CodeQL, ZAP
 
 ## Features
+- **Endpoints**: `/`, `/quote`, `/quotes`, `/quotes/:id`, `/metrics`
+- **Metrics**: `http_requests_total`, `http_request_duration_seconds` histogram
+- **Logging**: JSON logs for `request_start` and `request_complete`
+- **Tracing**: `X-Request-ID` header using UUID per request
+- **Security**: Helmet removes `X-Powered-By`, sets common secure headers
 
-### Application
-- ✅ Express.js REST API with 5 endpoints
-- ✅ Prometheus metrics for monitoring
-- ✅ Structured JSON logging
-- ✅ UUID-based request tracing
-- ✅ Security headers with helmet
+## Tech Stack
+- **Runtime**: Node.js 18
+- **Framework**: Express 4.18.x
+- **Testing**: Jest + Supertest
+- **Metrics**: prom-client
+- **Container**: Docker (multi-stage, non-root)
+- **Kubernetes**: Deployment (2 replicas), Service (NodePort), HPA, NetworkPolicy, ConfigMap
 
-### Testing & Quality
-- ✅ 14 comprehensive test cases (Jest)
-- ✅ ESLint code quality checks
-- ✅ Test coverage reporting
-- ✅ Security audit (npm audit)
-
-### Deployment
-- ✅ Docker multi-stage builds
-- ✅ Kubernetes manifests (Namespace, Deployment, Service, HPA, NetworkPolicy)
-- ✅ Docker Compose for local development
-- ✅ Prometheus monitoring configuration
-
-### CI/CD
-- ✅ GitHub Actions CI pipeline
-- ✅ Automated linting & testing
-- ✅ CodeQL static analysis
-- ✅ OWASP ZAP dynamic security scanning
-
-## Quick Start
-
-### Local Development
-
-```bash
-# Install dependencies
+## Quick Start (Local)
+```powershell
+# Install deps
 npm install
 
-# Run development server with auto-reload
-npm run dev
+# Run locally
+npm start
 
 # Run tests
 npm test
 
-# Run linter
+# Lint & fix
 npm run lint
+npm run lint:fix
 
-# Run security audit
+# Security audit
 npm run security:audit
 ```
 
-### Docker
+## Run with Docker
+```powershell
+# Build
+docker build -t quote-api:latest .
 
-```bash
-# Build image
-docker build -t quote-api:1.0.0 .
+# Run
+docker run -d -p 3000:3000 --name quote-api quote-api:latest
 
-# Run container
-docker run -d -p 3000:3000 quote-api:1.0.0
+# Try it
+curl.exe http://127.0.0.1:3000/
+curl.exe http://127.0.0.1:3000/quote
+curl.exe http://127.0.0.1:3000/metrics
+```
 
-# Or use docker-compose
+## Docker Compose + Prometheus
+```powershell
+# Start API + Prometheus
 docker-compose up -d
+
+# Check API
+curl.exe http://127.0.0.1:3000/quote
+
+# Prometheus is available if mapped (see docker-compose.yml)
 ```
 
-### Kubernetes
-
-```bash
-# Make deployment script executable
-chmod +x scripts/deploy.sh
-
-# Deploy to Kubernetes
-./scripts/deploy.sh deploy
-
-# Verify deployment
-./scripts/deploy.sh verify
-
-# Test endpoints
-./scripts/deploy.sh test
-
-# View logs
-./scripts/deploy.sh logs
-
-# Cleanup
-./scripts/cleanup.sh
+## Kubernetes (Minikube) Demo
+### Prerequisites (Windows)
+```powershell
+# Install via Scoop (recommended)
+scoop install minikube kubectl
 ```
 
-## API Endpoints
+### Start & Deploy
+```powershell
+# Start cluster
+minikube start
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/` | Health check |
-| GET | `/quote` | Random quote |
-| GET | `/quotes` | All quotes |
-| GET | `/quotes/:id` | Quote by ID |
-| GET | `/metrics` | Prometheus metrics |
+# Apply manifests
+kubectl apply -f k8s/quote-api.yaml
 
-### Health Check
-
-```bash
-curl http://localhost:3000/
+# Verify
+kubectl get nodes
+kubectl get all -n quote-api
+kubectl get endpoints quote-api-service -n quote-api
 ```
 
-### Random Quote
+### Access Methods
+- **Port-forward (recommended)**: stable localhost, shows Service→Pod routing
+  ```powershell
+  kubectl port-forward -n quote-api svc/quote-api-service 3000:3000
+  # New terminal
+  curl.exe http://127.0.0.1:3000/
+  curl.exe http://127.0.0.1:3000/quote
+  curl.exe http://127.0.0.1:3000/metrics
+  ```
+- **minikube service --url**: convenience tunnel; keep the terminal open
+  ```powershell
+  minikube service quote-api-service -n quote-api --url
+  # Use printed URL, e.g. http://127.0.0.1:56864
+  curl.exe http://127.0.0.1:56864/quote
+  ```
+- **NodePort (30007) caveat on Windows**: with Docker driver, `http://<minikube-ip>:30007` may be unreachable due to NAT/firewall. Prefer port-forward or `minikube service --url`. Works reliably on Linux/WSL2/Hyper-V.
 
-```bash
-curl http://localhost:3000/quote
+### Live Walkthrough Script
+```powershell
+minikube start
+kubectl apply -f k8s/quote-api.yaml
+kubectl get all -n quote-api
+kubectl get endpoints quote-api-service -n quote-api
+kubectl port-forward -n quote-api svc/quote-api-service 3000:3000
+# New terminal
+curl.exe http://127.0.0.1:3000/
+curl.exe http://127.0.0.1:3000/quote
+curl.exe http://127.0.0.1:3000/metrics
 ```
 
-### Prometheus Metrics
+## Observability
+- **Metrics endpoint**: `/metrics` (Prometheus format)
+- **Histogram buckets**: `[0.01, 0.05, 0.1, 0.5, 1, 2, 5]` are cumulative; an observation increments all buckets with `le >= duration`.
+- **Example PromQL**:
+  - Average latency:
+    ```
+    rate(http_request_duration_seconds_sum{route="/quote",method="GET"}[5m])
+    /
+    rate(http_request_duration_seconds_count{route="/quote",method="GET"}[5m])
+    ```
+  - 95th percentile:
+    ```
+    histogram_quantile(0.95,
+      sum by (le) (
+        rate(http_request_duration_seconds_bucket{route="/quote",method="GET"}[5m])
+      )
+    )
+    ```
+- **Logs**: JSON events `request_start` and `request_complete` with `requestId`, method, url, status, durationMs.
+- **Tracing**: `X-Request-ID` header attached to responses for correlation.
+- **Favicon noise**: If `/favicon.ico` appears in metrics/logs, you can add a no-content handler and skip metrics for that path.
 
-```bash
-curl http://localhost:3000/metrics
-```
+## Security
+- **Runtime**: Helmet adds secure headers and removes `X-Powered-By`.
+- **SAST**: CodeQL workflow scans repository (non-blocking in CI unless configured).
+- **DAST**: OWASP ZAP baseline job runs; configured to continue-on-error to avoid pipeline flakes.
+- **Dependencies**: `npm run security:audit` checks vulnerability advisories.
+
+## CI/CD (GitHub Actions)
+- **ci.yml**: lint, test (coverage), security audit, docker build/test
+- **codeql.yml**: static analysis
+- **dast.yml**: ZAP baseline with resilient settings
+
+## API Reference
+- **GET /**: Health with metadata and endpoints list
+- **GET /quote**: Random quote
+- **GET /quotes**: All quotes with count
+- **GET /quotes/:id**: Quote by ID (404 if missing)
+- **GET /metrics**: Prometheus metrics registry
+
+## Scripts
+- **scripts/deploy.ps1**: Windows deployment helper (start, deploy, verify, test, logs)
+- **scripts/deploy.sh**: Bash equivalent
+- **scripts/cleanup.sh**: Remove namespace and optionally stop Minikube
+
+## Troubleshooting
+- **NodePort unreachable on Windows (Docker driver)**: Use port-forward or `minikube service --url`. Consider WSL2/Hyper-V driver for NodePort exposure.
+- **minikube service URL closes**: Keep the terminal printing the URL open; it runs a local tunnel.
+- **Prometheus scrape**: Ensure `prometheus.yml` targets the API at `/metrics` (10s scrape). In Kubernetes, annotations enable scraping if you run Prometheus there.
 
 ## Project Structure
-
 ```
 .
-├── index.js                    # Main application
-├── Dockerfile                  # Multi-stage Docker build
-├── docker-compose.yml          # Local development setup
-├── k8s/
-│   └── quote-api.yaml         # All K8s manifests
-├── scripts/
-│   ├── deploy.sh              # K8s deployment helper
-│   └── cleanup.sh             # K8s cleanup helper
-├── jest.config.js             # Jest configuration
-├── babel.config.js            # Babel configuration
-├── eslint.config.js           # ESLint configuration
-├── .github/workflows/
-│   ├── ci.yml                 # CI/CD pipeline
-│   ├── codeql.yml             # SAST scanning
-│   └── dast.yml               # Dynamic security scanning
+├── index.js
+├── src/ (if added later)
 ├── tests/
-│   └── api.test.js            # API test suite
-└── prometheus.yml             # Prometheus config
+│  └── api.test.js
+├── k8s/
+│  └── quote-api.yaml
+├── scripts/
+│  ├── deploy.ps1
+│  ├── deploy.sh
+│  └── cleanup.sh
+├── Dockerfile
+├── .dockerignore
+├── docker-compose.yml
+├── prometheus.yml
+├── package.json
+└── README.md
 ```
-
-## Technology Stack
-
-- **Runtime**: Node.js 18 (LTS)
-- **Framework**: Express.js 4.18.2
-- **Testing**: Jest 29.7.0, Supertest 6.3.3
-- **Monitoring**: Prometheus (prom-client)
-- **Security**: Helmet, npm audit, CodeQL, OWASP ZAP
-- **Container**: Docker with multi-stage builds
-- **Orchestration**: Kubernetes (Minikube compatible)
-
-## Kubernetes Deployment
-
-### Prerequisites
-- Minikube installed
-- kubectl installed
-- Docker Hub account (for production)
-
-### Quick Deploy
-
-```bash
-# Update YOUR_DOCKERHUB_USERNAME in k8s/quote-api.yaml
-chmod +x scripts/deploy.sh
-./scripts/deploy.sh deploy
-```
-
-### Resources Created
-
-- **Namespace**: `quote-api`
-- **Deployment**: 2 replicas with health checks
-- **Service**: NodePort on 30007
-- **HorizontalPodAutoscaler**: 2-5 replicas
-- **NetworkPolicy**: Traffic restrictions
-- **ConfigMap**: Application config
-
-## CI/CD Pipeline
-
-Automatic on every push/PR to `main`:
-
-1. **Lint** - ESLint checks
-2. **Test** - Jest test suite
-3. **Security Audit** - npm dependencies
-4. **Build** - Docker image
-5. **SAST** - CodeQL analysis
-6. **DAST** - OWASP ZAP scanning
-
-## Development Commands
-
-```bash
-npm install          # Install dependencies
-npm run dev          # Development server
-npm test             # Run tests
-npm run test:coverage # Test with coverage
-npm run lint         # Lint code
-npm run lint:fix     # Fix linting errors
-npm run security:audit # Check vulnerabilities
-```
-
-## Contributing
-
-1. Create feature branch
-2. Make changes
-3. Run tests: `npm test`
-4. Lint: `npm run lint`
-5. Push and create PR
-6. Wait for CI to pass
-
-## License
-
-MIT
 
 ## Author
-
 SkanderTN
